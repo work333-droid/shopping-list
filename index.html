@@ -475,21 +475,50 @@ function hideProcessing() {
 
 // ─── Gemini API ───
 async function callGemini(parts, prompt) {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${apiKey}`;
-  const body = {
-    contents: [{ parts: [{ text: prompt }, ...parts] }]
-  };
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body)
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.error?.message || `API error ${res.status}`);
+  // Free tier models confirmed as of Feb 2026 (all support image+audio input)
+  // gemini-2.0-flash is deprecated March 31 2026, so use 2.5 series first
+  const models = [
+    'gemini-2.5-flash-lite',   // free tier, highest throughput, best for simple tasks
+    'gemini-2.5-flash',        // free tier, great balance of speed and capability
+    'gemini-2.0-flash-lite',   // free tier fallback
+    'gemini-2.0-flash'         // free tier fallback (deprecated March 2026)
+  ];
+  let lastError;
+  for (const model of models) {
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+      const body = {
+        contents: [{ parts: [{ text: prompt }, ...parts] }]
+      };
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+        if (text) return text;
+      }
+      const err = await res.json().catch(() => ({}));
+      lastError = err.error?.message || `API error ${res.status}`;
+      // Retry next model on quota/rate limit/resource exhausted errors
+      if (res.status === 429 || res.status === 503 || res.status === 400
+          || (lastError && (lastError.includes('quota') || lastError.includes('limit')
+          || lastError.includes('RESOURCE_EXHAUSTED') || lastError.includes('RATE_LIMIT')))) {
+        continue;
+      }
+      // For auth errors, stop immediately — no point trying other models
+      if (res.status === 401 || res.status === 403) {
+        throw new Error('Invalid API key. Please check your key in Settings.');
+      }
+    } catch (err) {
+      if (err.message.includes('Invalid API key')) throw err;
+      lastError = err.message || 'Network error';
+      continue;
+    }
   }
-  const data = await res.json();
-  return data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
+  throw new Error('All Gemini models are currently rate-limited. Please wait a minute and try again.');
 }
 
 // ─── Voice Input ───
