@@ -683,13 +683,34 @@ async function startRecording() {
         const base64 = await blobToBase64(blob);
         const text = await callGemini(
           [{ inline_data: { mime_type: 'audio/webm', data: base64 } }],
-          'Listen to this audio recording. The person is listing items they need to buy. Extract EACH individual item separately. Return them one per line, like:\nbanana\nbuns\napple\nReturn ONLY item names, one per line. No numbers, no bullets, no quotes, no extra words.'
+          `You are transcribing a shopping list. Listen carefully to the audio and write down EXACTLY what grocery items the person said.
+
+Rules:
+- Write ONLY the food/grocery item names
+- One item per line
+- Use lowercase
+- Keep it simple (e.g., "milk" not "2% milk")
+- If they say "and" between items, those are separate items
+- If you hear numbers, ignore them - just write the item name
+- Common items: milk, bread, eggs, butter, cheese, chicken, beef, rice, pasta, apples, bananas, etc.
+
+Example input: "I need milk and bread"
+Example output:
+milk
+bread
+
+Example input: "Get me some chicken breast and also rice"
+Example output:
+chicken breast
+rice
+
+Now transcribe what you hear:`
         );
         if (text) {
           // Split on newlines, commas, "and", or numbered lists
           const itemNames = text
             .split(/\n|,|(?:^|\s)\d+[\.\)]\s*|\band\b/gi)
-            .map(s => s.replace(/^[-•*]\s*/, '').trim())
+            .map(s => s.replace(/^[-•*]\s*/, '').trim().toLowerCase())
             .filter(Boolean);
           if (itemNames.length > 0) {
             itemNames.reverse().forEach(name => addItem(name, 'voice'));
