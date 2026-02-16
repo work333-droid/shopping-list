@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#1a73e8">
+<title>Price Compare</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; overflow: hidden; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: #f0f2f5;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+}
+
+/* Header */
+.header {
+  background: #1a73e8;
+  color: white;
+  padding: 0;
+  flex-shrink: 0;
+  padding-top: env(safe-area-inset-top);
+  z-index: 10;
+}
+.header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px 10px;
+}
+.header-title {
+  font-size: 18px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.header-subtitle {
+  font-size: 11px;
+  opacity: 0.75;
+  margin-top: 2px;
+}
+.header-actions { display: flex; gap: 8px; align-items: center; }
+.header-btn {
+  background: rgba(255,255,255,0.15); border: none; color: white; font-size: 12px;
+  cursor: pointer; padding: 6px 10px; border-radius: 8px; font-weight: 600;
+}
+.header-btn:active { background: rgba(255,255,255,0.3); }
+
+/* Store filter bar */
+.store-filter {
+  display: flex;
+  gap: 6px;
+  padding: 8px 12px;
+  background: #1565c0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.store-filter::-webkit-scrollbar { display: none; }
+.store-chip {
+  flex-shrink: 0;
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 1.5px solid rgba(255,255,255,0.4);
+  background: none;
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+.store-chip.active {
+  background: white;
+  color: #1a73e8;
+  border-color: white;
+}
+.store-chip:active { transform: scale(0.95); }
+
+/* Results area */
+.results-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Empty / loading states */
+.empty-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  gap: 8px;
+  padding: 40px;
+}
+.empty-state-icon { font-size: 48px; opacity: 0.5; }
+.empty-state-text { font-size: 15px; text-align: center; line-height: 1.5; }
+
+/* Product card */
+.product-card {
+  background: white;
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  animation: slideIn 0.2s ease-out;
+}
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.product-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.product-image {
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  object-fit: contain;
+  background: #f8f9fa;
+  flex-shrink: 0;
+}
+.product-image-placeholder {
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  background: #f0f2f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  flex-shrink: 0;
+}
+.product-info { flex: 1; min-width: 0; }
+.product-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1a1a1a;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.product-brand {
+  font-size: 12px;
+  color: #888;
+  margin-top: 2px;
+}
+.product-size {
+  font-size: 11px;
+  color: #aaa;
+  margin-top: 1px;
+}
+
+/* Price rows */
+.price-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.price-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: #f8f9fa;
+}
+.price-row.best {
+  background: #e8f5e9;
+}
+.price-store {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+}
+.store-logo {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+.store-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  color: white;
+  flex-shrink: 0;
+}
+.store-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: #444;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.price-amount {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1a1a1a;
+  white-space: nowrap;
+}
+.price-row.best .price-amount {
+  color: #2e7d32;
+}
+.price-badge {
+  font-size: 9px;
+  font-weight: 700;
+  background: #2e7d32;
+  color: white;
+  padding: 2px 5px;
+  border-radius: 4px;
+  margin-left: 4px;
+}
+.price-sale {
+  font-size: 9px;
+  font-weight: 600;
+  background: #ff5722;
+  color: white;
+  padding: 2px 5px;
+  border-radius: 4px;
+  margin-left: 4px;
+}
+.price-valid {
+  font-size: 10px;
+  color: #aaa;
+  margin-left: 6px;
+}
+
+/* Search summary */
+.search-summary {
+  font-size: 12px;
+  color: #888;
+  padding: 4px 4px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.search-summary-text { font-weight: 500; }
+.sort-btn {
+  background: none;
+  border: 1px solid #ddd;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  color: #666;
+  cursor: pointer;
+}
+.sort-btn:active { background: #f0f0f0; }
+
+/* Input bar */
+.input-bar {
+  padding: 8px 10px;
+  padding-bottom: max(8px, env(safe-area-inset-bottom));
+  background: white;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  z-index: 10;
+  border-top: 1px solid #e8e8e8;
+}
+.text-input {
+  flex: 1;
+  background: #f0f2f5;
+  border-radius: 24px;
+  padding: 10px 16px;
+  font-size: 16px;
+  border: 1.5px solid transparent;
+  outline: none;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  -webkit-user-select: text;
+  user-select: text;
+}
+.text-input:focus { border-color: #1a73e8; background: white; }
+.text-input:empty::before {
+  content: attr(data-placeholder);
+  color: #999;
+  pointer-events: none;
+}
+.text-input br { display: none; }
+.text-input * { display: inline; }
+
+.search-btn {
+  width: 42px; height: 42px; border-radius: 50%;
+  background: #1a73e8; display: flex;
+  align-items: center; justify-content: center;
+  flex-shrink: 0; cursor: pointer; border: none;
+  transition: transform 0.1s;
+}
+.search-btn:active { transform: scale(0.92); }
+.search-btn svg { fill: white; }
+.search-btn.loading { opacity: 0.6; pointer-events: none; }
+
+/* Loading */
+.loading-card {
+  display: flex; align-items: center; gap: 10px;
+  background: white; border-radius: 10px; padding: 16px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.06); color: #666; font-size: 14px;
+}
+.loading-dot {
+  display: inline-block; width: 8px; height: 8px;
+  border-radius: 50%; background: #1a73e8; margin: 0 2px;
+  animation: bounce 1.4s infinite ease-in-out both;
+}
+.loading-dot:nth-child(1) { animation-delay: -0.32s; }
+.loading-dot:nth-child(2) { animation-delay: -0.16s; }
+@keyframes bounce {
+  0%, 80%, 100% { transform: scale(0); }
+  40% { transform: scale(1); }
+}
+
+/* History chips */
+.history-section {
+  padding: 4px 0;
+}
+.history-label {
+  font-size: 12px;
+  color: #999;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+.history-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.history-chip {
+  padding: 6px 12px;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 20px;
+  font-size: 13px;
+  color: #444;
+  cursor: pointer;
+}
+.history-chip:active { background: #f0f0f0; }
+
+/* Flipp attribution */
+.attribution {
+  text-align: center;
+  padding: 12px;
+  font-size: 11px;
+  color: #bbb;
+}
+.attribution a { color: #1a73e8; text-decoration: none; }
+
+/* Nav link back */
+.nav-link {
+  font-size: 12px;
+  color: rgba(255,255,255,0.8);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.nav-link:active { color: white; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-top">
+    <div>
+      <div class="header-title">&#x1F4B0; Price Compare</div>
+      <div class="header-subtitle">Compare flyer prices across stores</div>
+    </div>
+    <div class="header-actions">
+      <button class="header-btn" onclick="changePostal()" id="postalBtn" title="Change postal code">&#x1F4CD; <span id="postalDisplay"></span></button>
+      <a class="nav-link" href="index.html">&#x2190; List</a>
+    </div>
+  </div>
+  <!-- Store filter -->
+  <div class="store-filter" id="storeFilter">
+    <button class="store-chip active" data-store="all" onclick="filterStore('all')">All Stores</button>
+    <button class="store-chip" data-store="walmart" onclick="filterStore('walmart')">Walmart</button>
+    <button class="store-chip" data-store="loblaws" onclick="filterStore('loblaws')">Loblaws</button>
+    <button class="store-chip" data-store="metro" onclick="filterStore('metro')">Metro</button>
+    <button class="store-chip" data-store="food basics" onclick="filterStore('food basics')">Food Basics</button>
+    <button class="store-chip" data-store="no frills" onclick="filterStore('no frills')">No Frills</button>
+  </div>
+</div>
+
+<!-- Results -->
+<div class="results-container" id="resultsContainer">
+  <div class="empty-state" id="emptyState">
+    <div class="empty-state-icon">&#x1F50D;</div>
+    <div class="empty-state-text">
+      Search for any grocery item to compare<br>prices across Canadian flyers.
+    </div>
+  </div>
+  <div class="history-section" id="historySection" style="display:none">
+    <div class="history-label">Recent Searches</div>
+    <div class="history-chips" id="historyChips"></div>
+  </div>
+</div>
+
+<!-- Input bar -->
+<div class="input-bar">
+  <div class="text-input" id="textInput" contenteditable="true" role="textbox" data-placeholder="Search item (e.g. chicken breast)..."></div>
+  <button class="search-btn" id="searchBtn" onclick="doSearch()">
+    <svg width="20" height="20" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+  </button>
+</div>
+
+<script>
+// ─── Config ───
+const FLIPP_BASE = 'https://backflipp.wishabi.com/flipp/items/search';
+let POSTAL_CODE = localStorage.getItem('priceComparePostal') || 'M5V2T6';
+
+// CORS proxies to try (Flipp blocks direct browser requests)
+const CORS_PROXIES = [
+  (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+  (url) => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+  (url) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+];
+
+// Store colors for dot logos
+const STORE_COLORS = {
+  'walmart': '#0071ce',
+  'loblaws': '#e1251b',
+  'loblaw': '#e1251b',
+  'no frills': '#ffd700',
+  'no-frills': '#ffd700',
+  'nofrills': '#ffd700',
+  'metro': '#003da5',
+  'food basics': '#e85d00',
+  'foodbasics': '#e85d00',
+  'food-basics': '#e85d00',
+};
+
+const STORE_INITIALS = {
+  'walmart': 'W',
+  'loblaws': 'L',
+  'loblaw': 'L',
+  'no frills': 'NF',
+  'no-frills': 'NF',
+  'nofrills': 'NF',
+  'metro': 'M',
+  'food basics': 'FB',
+  'foodbasics': 'FB',
+  'food-basics': 'FB',
+};
+
+// Normalize store names for filtering
+function normalizeStore(name) {
+  if (!name) return '';
+  const lower = name.toLowerCase();
+  if (lower.includes('walmart')) return 'walmart';
+  if (lower.includes('loblaw')) return 'loblaws';
+  if (lower.includes('no frills') || lower.includes('nofrills') || lower.includes('no-frills')) return 'no frills';
+  if (lower.includes('food basics') || lower.includes('foodbasics') || lower.includes('food-basics')) return 'food basics';
+  if (lower.includes('metro')) return 'metro';
+  return lower;
+}
+
+// ─── State ───
+let allResults = [];
+let activeStoreFilter = 'all';
+let searchHistory = JSON.parse(localStorage.getItem('priceCompareHistory') || '[]');
+let isSearching = false;
+
+// ─── Flipp Search (with CORS proxy fallback) ───
+async function searchFlipp(query) {
+  const directUrl = `${FLIPP_BASE}?locale=en-ca&postal_code=${encodeURIComponent(POSTAL_CODE)}&q=${encodeURIComponent(query)}`;
+
+  // Try direct first (works if served from a web server or if Flipp allows it)
+  try {
+    const res = await fetch(directUrl);
+    if (res.ok) {
+      const data = await res.json();
+      if (data.items) return data.items;
+    }
+  } catch (e) { /* CORS blocked, try proxies */ }
+
+  // Try each CORS proxy
+  let lastErr = '';
+  for (const makeProxy of CORS_PROXIES) {
+    try {
+      const proxyUrl = makeProxy(directUrl);
+      const res = await fetch(proxyUrl);
+      if (res.ok) {
+        const text = await res.text();
+        const data = JSON.parse(text);
+        if (data.items) return data.items;
+      }
+      lastErr = `Proxy returned ${res.status}`;
+    } catch (e) {
+      lastErr = e.message;
+      continue;
+    }
+  }
+  throw new Error(`All search methods failed. Last error: ${lastErr}`);
+}
+
+// ─── Do Search ───
+async function doSearch(prefill) {
+  const input = document.getElementById('textInput');
+  const query = (prefill || input.textContent || '').trim();
+  if (!query || isSearching) return;
+
+  input.textContent = query;
+  isSearching = true;
+  document.getElementById('searchBtn').classList.add('loading');
+
+  // Show loading
+  const container = document.getElementById('resultsContainer');
+  container.innerHTML = `<div class="loading-card">
+    <span class="loading-dot"></span><span class="loading-dot"></span><span class="loading-dot"></span>
+    &nbsp; Searching flyers for "${escapeHtml(query)}"...
+  </div>`;
+
+  try {
+    const items = await searchFlipp(query);
+
+    // Filter to only our target stores
+    const targetStores = ['walmart', 'loblaws', 'loblaw', 'no frills', 'nofrills', 'no-frills', 'metro', 'food basics', 'foodbasics', 'food-basics'];
+    const filtered = items.filter(item => {
+      const merchant = (item.merchant || '').toLowerCase();
+      return targetStores.some(s => merchant.includes(s));
+    });
+
+    allResults = filtered;
+    activeStoreFilter = 'all';
+
+    // Reset store chip UI
+    document.querySelectorAll('.store-chip').forEach(c => c.classList.remove('active'));
+    document.querySelector('.store-chip[data-store="all"]').classList.add('active');
+
+    // Save to history
+    if (!searchHistory.includes(query.toLowerCase())) {
+      searchHistory.unshift(query.toLowerCase());
+      if (searchHistory.length > 10) searchHistory.pop();
+      localStorage.setItem('priceCompareHistory', JSON.stringify(searchHistory));
+    }
+
+    renderResults(query);
+  } catch (err) {
+    container.innerHTML = `<div class="empty-state">
+      <div class="empty-state-icon">&#x26A0;</div>
+      <div class="empty-state-text">Error: ${escapeHtml(err.message)}<br>Please try again.</div>
+    </div>`;
+  }
+
+  isSearching = false;
+  document.getElementById('searchBtn').classList.remove('loading');
+}
+
+// ─── Render Results ───
+function renderResults(query) {
+  const container = document.getElementById('resultsContainer');
+
+  let results = allResults;
+  if (activeStoreFilter !== 'all') {
+    results = results.filter(item => normalizeStore(item.merchant) === activeStoreFilter);
+  }
+
+  if (results.length === 0) {
+    container.innerHTML = `<div class="empty-state">
+      <div class="empty-state-icon">&#x1F645;</div>
+      <div class="empty-state-text">No flyer deals found for "${escapeHtml(query)}"${activeStoreFilter !== 'all' ? ' at ' + activeStoreFilter : ''}.<br>Try a different search term.</div>
+    </div>`;
+    return;
+  }
+
+  // Group by product name similarity (loose grouping by cleaned name)
+  const groups = groupProducts(results);
+
+  let html = `<div class="search-summary">
+    <span class="search-summary-text">${results.length} deal${results.length !== 1 ? 's' : ''} found for "${escapeHtml(query)}"</span>
+  </div>`;
+
+  for (const group of groups) {
+    if (group.length === 1) {
+      html += renderSingleProduct(group[0]);
+    } else {
+      html += renderGroupedProducts(group);
+    }
+  }
+
+  html += `<div class="attribution">Flyer data via <a href="https://flipp.com" target="_blank">Flipp</a> &middot; Postal: ${escapeHtml(POSTAL_CODE)}</div>`;
+
+  container.innerHTML = html;
+  container.scrollTop = 0;
+}
+
+function groupProducts(items) {
+  // Sort by price (lowest first) then group by similar product name
+  const sorted = [...items].sort((a, b) => {
+    const pa = extractPrice(a);
+    const pb = extractPrice(b);
+    return pa - pb;
+  });
+
+  const groups = [];
+  const used = new Set();
+
+  for (let i = 0; i < sorted.length; i++) {
+    if (used.has(i)) continue;
+    const group = [sorted[i]];
+    used.add(i);
+
+    const nameA = cleanName(sorted[i].name || sorted[i].description || '');
+
+    for (let j = i + 1; j < sorted.length; j++) {
+      if (used.has(j)) continue;
+      const nameB = cleanName(sorted[j].name || sorted[j].description || '');
+      if (similarNames(nameA, nameB) && normalizeStore(sorted[i].merchant) !== normalizeStore(sorted[j].merchant)) {
+        group.push(sorted[j]);
+        used.add(j);
+      }
+    }
+    groups.push(group);
+  }
+
+  return groups;
+}
+
+function cleanName(name) {
+  return name.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
+}
+
+function similarNames(a, b) {
+  if (a === b) return true;
+  const wordsA = a.split(' ').filter(w => w.length > 2);
+  const wordsB = b.split(' ').filter(w => w.length > 2);
+  const common = wordsA.filter(w => wordsB.includes(w));
+  return common.length >= Math.min(2, Math.min(wordsA.length, wordsB.length));
+}
+
+function extractPrice(item) {
+  if (item.current_price != null) return item.current_price;
+  if (item.price != null) return item.price;
+  // Try to parse from description
+  const match = (item.description || item.name || '').match(/\$(\d+\.?\d*)/);
+  return match ? parseFloat(match[1]) : 9999;
+}
+
+function formatPrice(item) {
+  const p = extractPrice(item);
+  if (p >= 9999) {
+    // Try showing raw price text
+    const text = item.pre_price_text || item.price_text || '';
+    return text || 'See flyer';
+  }
+  return '$' + p.toFixed(2);
+}
+
+function renderSingleProduct(item) {
+  const storeName = item.merchant || 'Unknown';
+  const norm = normalizeStore(storeName);
+  const color = STORE_COLORS[norm] || '#888';
+  const initial = STORE_INITIALS[norm] || storeName.charAt(0).toUpperCase();
+  const name = item.name || item.description || 'Unknown item';
+  const brand = item.brand || '';
+  const imageUrl = item.image_url || item.cutout_image_url || '';
+  const price = formatPrice(item);
+  const saleText = item.pre_price_text || '';
+  const validTo = item.valid_to ? formatDate(item.valid_to) : '';
+
+  return `<div class="product-card">
+    <div class="product-header">
+      ${imageUrl ? `<img class="product-image" src="${imageUrl}" alt="" loading="lazy" onerror="this.style.display='none'">` : `<div class="product-image-placeholder">&#x1F6D2;</div>`}
+      <div class="product-info">
+        <div class="product-name">${escapeHtml(name)}</div>
+        ${brand ? `<div class="product-brand">${escapeHtml(brand)}</div>` : ''}
+      </div>
+    </div>
+    <div class="price-rows">
+      <div class="price-row">
+        <div class="price-store">
+          <div class="store-dot" style="background:${color}">${initial}</div>
+          <span class="store-name">${escapeHtml(storeName)}</span>
+          ${saleText && saleText.toLowerCase().includes('sale') ? '<span class="price-sale">SALE</span>' : ''}
+        </div>
+        <span class="price-amount">${escapeHtml(price)}</span>
+      </div>
+    </div>
+    ${validTo ? `<div style="text-align:right;margin-top:4px"><span class="price-valid">Valid until ${validTo}</span></div>` : ''}
+  </div>`;
+}
+
+function renderGroupedProducts(items) {
+  // Sort by price ascending within group
+  const sorted = [...items].sort((a, b) => extractPrice(a) - extractPrice(b));
+  const bestPrice = extractPrice(sorted[0]);
+
+  // Use first item's info for the card header
+  const first = sorted[0];
+  const name = first.name || first.description || 'Unknown item';
+  const brand = first.brand || '';
+  const imageUrl = first.image_url || first.cutout_image_url || '';
+
+  let rows = '';
+  for (let i = 0; i < sorted.length; i++) {
+    const item = sorted[i];
+    const storeName = item.merchant || 'Unknown';
+    const norm = normalizeStore(storeName);
+    const color = STORE_COLORS[norm] || '#888';
+    const initial = STORE_INITIALS[norm] || storeName.charAt(0).toUpperCase();
+    const price = formatPrice(item);
+    const isBest = i === 0 && sorted.length > 1;
+    const saleText = item.pre_price_text || '';
+
+    rows += `<div class="price-row ${isBest ? 'best' : ''}">
+      <div class="price-store">
+        <div class="store-dot" style="background:${color}">${initial}</div>
+        <span class="store-name">${escapeHtml(storeName)}</span>
+        ${isBest ? '<span class="price-badge">BEST</span>' : ''}
+        ${saleText && saleText.toLowerCase().includes('sale') ? '<span class="price-sale">SALE</span>' : ''}
+      </div>
+      <span class="price-amount">${escapeHtml(price)}</span>
+    </div>`;
+  }
+
+  return `<div class="product-card">
+    <div class="product-header">
+      ${imageUrl ? `<img class="product-image" src="${imageUrl}" alt="" loading="lazy" onerror="this.style.display='none'">` : `<div class="product-image-placeholder">&#x1F6D2;</div>`}
+      <div class="product-info">
+        <div class="product-name">${escapeHtml(name)}</div>
+        ${brand ? `<div class="product-brand">${escapeHtml(brand)}</div>` : ''}
+        <div class="product-size">${sorted.length} stores compared</div>
+      </div>
+    </div>
+    <div class="price-rows">${rows}</div>
+  </div>`;
+}
+
+function formatDate(dateStr) {
+  try {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('en-CA', { month: 'short', day: 'numeric' });
+  } catch { return ''; }
+}
+
+// ─── Store Filter ───
+function filterStore(store) {
+  activeStoreFilter = store;
+  document.querySelectorAll('.store-chip').forEach(c => {
+    c.classList.toggle('active', c.dataset.store === store);
+  });
+  const query = document.getElementById('textInput').textContent.trim();
+  if (allResults.length > 0) {
+    renderResults(query);
+  }
+}
+
+// ─── History ───
+function renderHistory() {
+  if (searchHistory.length === 0) {
+    document.getElementById('historySection').style.display = 'none';
+    return;
+  }
+  document.getElementById('historySection').style.display = '';
+  document.getElementById('historyChips').innerHTML = searchHistory.slice(0, 8).map(q =>
+    `<button class="history-chip" onclick="doSearch('${escapeHtml(q)}')">${escapeHtml(q)}</button>`
+  ).join('');
+}
+
+// ─── Helpers ───
+function escapeHtml(text) {
+  const d = document.createElement('div');
+  d.textContent = text;
+  return d.innerHTML;
+}
+
+// ─── Input Handling ───
+document.getElementById('textInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    doSearch();
+  }
+});
+
+// ─── Postal Code ───
+function changePostal() {
+  const code = prompt('Enter your Canadian postal code (e.g. M5V2T6):', POSTAL_CODE);
+  if (code && code.trim().length >= 3) {
+    POSTAL_CODE = code.trim().replace(/\s/g, '').toUpperCase();
+    localStorage.setItem('priceComparePostal', POSTAL_CODE);
+    document.getElementById('postalDisplay').textContent = POSTAL_CODE;
+    // Re-search if there's a query
+    const query = document.getElementById('textInput').textContent.trim();
+    if (query) doSearch(query);
+  }
+}
+
+// ─── Init ───
+document.getElementById('postalDisplay').textContent = POSTAL_CODE;
+renderHistory();
+</script>
+</body>
+</html>

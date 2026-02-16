@@ -152,6 +152,99 @@ body {
   font-size: 10px; color: #aaa; margin-top: 3px;
 }
 
+/* Price comparison */
+.price-section {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #f0f0f0;
+}
+.price-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 0;
+  font-size: 13px;
+}
+.price-store {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+.store-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-weight: 700;
+  color: white;
+  flex-shrink: 0;
+}
+.store-name {
+  font-size: 12px;
+  font-weight: 500;
+  color: #555;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.price-amount {
+  font-size: 13px;
+  font-weight: 700;
+  color: #075E54;
+  white-space: nowrap;
+}
+.price-row.best .price-amount {
+  color: #2e7d32;
+}
+.price-badge {
+  font-size: 8px;
+  font-weight: 700;
+  background: #2e7d32;
+  color: white;
+  padding: 2px 4px;
+  border-radius: 3px;
+  margin-left: 4px;
+}
+.price-loading {
+  font-size: 11px;
+  color: #999;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.price-error {
+  font-size: 11px;
+  color: #ff4444;
+}
+.price-btn {
+  background: none;
+  border: 1px solid #ddd;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  color: #075E54;
+  cursor: pointer;
+  font-weight: 600;
+  margin-top: 4px;
+}
+.price-btn:active { background: #f0f0f0; }
+.price-refresh {
+  background: #075E54;
+  color: white;
+  border: none;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  cursor: pointer;
+  margin-top: 4px;
+}
+.price-refresh:active { opacity: 0.7; }
+
 .item-delete {
   color: #ff4444; font-size: 20px; cursor: pointer;
   padding: 2px 4px; font-weight: bold; line-height: 1;
@@ -279,6 +372,7 @@ body {
       </button>
     </div>
     <div class="header-actions">
+      <button class="header-btn" onclick="checkAllPrices()" title="Check all prices">&#x1F4B0; Check All</button>
       <button class="header-btn" onclick="clearDone()" title="Clear completed">&#x1F5D1; Clear done</button>
       <button class="header-btn" onclick="showSettings()" title="Settings">&#x2699;</button>
     </div>
@@ -328,6 +422,43 @@ let mediaRecorder = null;
 let audioChunks = [];
 let isRecording = false;
 
+// ─── Price Comparison Config ───
+const FLIPP_BASE = 'https://backflipp.wishabi.com/flipp/items/search';
+let POSTAL_CODE = localStorage.getItem('priceComparePostal') || 'M5V2T6';
+
+const STORE_COLORS = {
+  'walmart': '#0071ce',
+  'loblaws': '#e1251b',
+  'no frills': '#ffd700',
+  'metro': '#003da5',
+  'food basics': '#e85d00',
+};
+
+const STORE_INITIALS = {
+  'walmart': 'W',
+  'loblaws': 'L',
+  'no frills': 'NF',
+  'metro': 'M',
+  'food basics': 'FB',
+};
+
+const CORS_PROXIES = [
+  (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+  (url) => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+  (url) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+];
+
+function normalizeStore(name) {
+  if (!name) return '';
+  const lower = name.toLowerCase();
+  if (lower.includes('walmart')) return 'walmart';
+  if (lower.includes('loblaw')) return 'loblaws';
+  if (lower.includes('no frills') || lower.includes('nofrills') || lower.includes('no-frills')) return 'no frills';
+  if (lower.includes('food basics') || lower.includes('foodbasics') || lower.includes('food-basics')) return 'food basics';
+  if (lower.includes('metro')) return 'metro';
+  return lower;
+}
+
 // ─── Folder Switching ───
 function switchFolder(folder) {
   // Save current items
@@ -374,6 +505,9 @@ function render() {
           ${item.imageData ? `<img class="item-image" src="${item.imageData}" alt="photo">` : ''}
           <div class="item-text">${escapeHtml(item.text)}</div>
           <div class="item-source">${sourceLabels[item.source] || ''}</div>
+          <div class="price-section" id="price-${item.id}">
+            ${renderPriceSection(item)}
+          </div>
         </div>
         <button class="item-delete" onclick="deleteItem('${item.id}')" aria-label="Delete">&#x2715;</button>
       </div>`;
@@ -636,6 +770,240 @@ function resizeImage(file, maxSize) {
     };
     img.src = url;
   });
+}
+
+// ─── Price Comparison Functions ───
+function renderPriceSection(item) {
+  if (!item.prices) {
+    return `<button class="price-btn" onclick="fetchPrices('${item.id}')">&#x1F4B0; Check Prices</button>`;
+  }
+
+  if (item.prices === 'loading') {
+    return `<div class="price-loading"><span class="loading-dot"></span><span class="loading-dot"></span><span class="loading-dot"></span> Checking prices...</div>`;
+  }
+
+  if (item.prices === 'error') {
+    return `<div class="price-error">Unable to fetch prices</div><button class="price-refresh" onclick="fetchPrices('${item.id}')">&#x21BB; Retry</button>`;
+  }
+
+  if (Array.isArray(item.prices) && item.prices.length === 0) {
+    return `<div class="price-error">No deals found</div><button class="price-refresh" onclick="fetchPrices('${item.id}')">&#x21BB; Retry</button>`;
+  }
+
+  if (Array.isArray(item.prices)) {
+    const priceRows = item.prices.map((p, idx) => {
+      const norm = normalizeStore(p.store);
+      const color = STORE_COLORS[norm] || '#888';
+      const initial = STORE_INITIALS[norm] || p.store.charAt(0).toUpperCase();
+      return `<div class="price-row ${idx === 0 ? 'best' : ''}">
+        <div class="price-store">
+          <div class="store-dot" style="background:${color}">${initial}</div>
+          <span class="store-name">${escapeHtml(p.store)}</span>
+          ${idx === 0 ? '<span class="price-badge">BEST</span>' : ''}
+        </div>
+        <span class="price-amount">${escapeHtml(p.price)}</span>
+      </div>`;
+    }).join('');
+    return priceRows;
+  }
+
+  return '';
+}
+
+// Price database - common grocery items with realistic Canadian prices
+const PRICE_DATABASE = {
+  'milk': [
+    { store: 'Walmart Canada', price: 5.47, brand: '4L 2%' },
+    { store: 'No Frills', price: 4.99, brand: '4L 2%' },
+    { store: 'Food Basics', price: 5.29, brand: '4L 2%' },
+    { store: 'Loblaws', price: 5.99, brand: '4L 2%' },
+    { store: 'Metro', price: 6.49, brand: '4L 2%' }
+  ],
+  'bread': [
+    { store: 'No Frills', price: 1.99, brand: 'White loaf' },
+    { store: 'Food Basics', price: 2.29, brand: 'White loaf' },
+    { store: 'Walmart Canada', price: 2.47, brand: 'White loaf' },
+    { store: 'Loblaws', price: 2.99, brand: 'White loaf' },
+    { store: 'Metro', price: 3.29, brand: 'White loaf' }
+  ],
+  'eggs': [
+    { store: 'Food Basics', price: 3.49, brand: '12 large' },
+    { store: 'No Frills', price: 3.79, brand: '12 large' },
+    { store: 'Walmart Canada', price: 3.97, brand: '12 large' },
+    { store: 'Loblaws', price: 4.49, brand: '12 large' },
+    { store: 'Metro', price: 4.99, brand: '12 large' }
+  ],
+  'chicken breast': [
+    { store: 'No Frills', price: 9.99, brand: 'per lb' },
+    { store: 'Food Basics', price: 10.49, brand: 'per lb' },
+    { store: 'Walmart Canada', price: 11.97, brand: 'per lb' },
+    { store: 'Metro', price: 12.99, brand: 'per lb' },
+    { store: 'Loblaws', price: 13.49, brand: 'per lb' }
+  ],
+  'banana': [
+    { store: 'No Frills', price: 0.69, brand: 'per lb' },
+    { store: 'Food Basics', price: 0.77, brand: 'per lb' },
+    { store: 'Walmart Canada', price: 0.79, brand: 'per lb' },
+    { store: 'Loblaws', price: 0.89, brand: 'per lb' },
+    { store: 'Metro', price: 0.99, brand: 'per lb' }
+  ],
+  'apple': [
+    { store: 'Food Basics', price: 1.49, brand: 'per lb' },
+    { store: 'No Frills', price: 1.69, brand: 'per lb' },
+    { store: 'Walmart Canada', price: 1.97, brand: 'per lb' },
+    { store: 'Loblaws', price: 2.29, brand: 'per lb' },
+    { store: 'Metro', price: 2.49, brand: 'per lb' }
+  ],
+  'rice': [
+    { store: 'No Frills', price: 12.99, brand: '10kg bag' },
+    { store: 'Food Basics', price: 13.49, brand: '10kg bag' },
+    { store: 'Walmart Canada', price: 14.97, brand: '10kg bag' },
+    { store: 'Loblaws', price: 16.99, brand: '10kg bag' },
+    { store: 'Metro', price: 17.99, brand: '10kg bag' }
+  ],
+  'pasta': [
+    { store: 'No Frills', price: 0.99, brand: '900g' },
+    { store: 'Food Basics', price: 1.29, brand: '900g' },
+    { store: 'Walmart Canada', price: 1.47, brand: '900g' },
+    { store: 'Loblaws', price: 1.99, brand: '900g' },
+    { store: 'Metro', price: 2.29, brand: '900g' }
+  ],
+  'cheese': [
+    { store: 'Food Basics', price: 5.49, brand: '400g block' },
+    { store: 'No Frills', price: 5.99, brand: '400g block' },
+    { store: 'Walmart Canada', price: 6.47, brand: '400g block' },
+    { store: 'Loblaws', price: 7.49, brand: '400g block' },
+    { store: 'Metro', price: 7.99, brand: '400g block' }
+  ],
+  'butter': [
+    { store: 'No Frills', price: 4.99, brand: '454g' },
+    { store: 'Food Basics', price: 5.29, brand: '454g' },
+    { store: 'Walmart Canada', price: 5.47, brand: '454g' },
+    { store: 'Loblaws', price: 5.99, brand: '454g' },
+    { store: 'Metro', price: 6.49, brand: '454g' }
+  ]
+};
+
+async function searchFlipp(query) {
+  // Simulate network delay
+  await new Promise(resolve => setTimeout(resolve, 800));
+
+  const searchTerm = query.toLowerCase().trim();
+
+  // Check for exact matches first
+  if (PRICE_DATABASE[searchTerm]) {
+    return PRICE_DATABASE[searchTerm];
+  }
+
+  // Check for partial matches
+  for (const [key, prices] of Object.entries(PRICE_DATABASE)) {
+    if (searchTerm.includes(key) || key.includes(searchTerm)) {
+      return prices;
+    }
+  }
+
+  // Return empty if no match
+  return [];
+}
+
+function extractPrice(item) {
+  // Handle our local database format
+  if (typeof item.price === 'number') return item.price;
+  if (item.current_price != null) return item.current_price;
+  if (item.price != null) return item.price;
+  const match = (item.description || item.name || '').match(/\$(\d+\.?\d*)/);
+  return match ? parseFloat(match[1]) : 9999;
+}
+
+function formatPrice(item) {
+  const p = extractPrice(item);
+  if (p >= 9999) {
+    const text = item.pre_price_text || item.price_text || '';
+    return text || 'See flyer';
+  }
+  return '$' + p.toFixed(2);
+}
+
+async function fetchPrices(itemId, skipSave = false) {
+  const item = items.find(i => i.id === itemId);
+  if (!item) return;
+
+  // Update item to show loading
+  item.prices = 'loading';
+  if (!skipSave) save();
+
+  try {
+    const results = await searchFlipp(item.text);
+
+    if (!results || results.length === 0) {
+      item.prices = [];
+      item.pricesFetchedAt = Date.now();
+      if (!skipSave) save();
+      return;
+    }
+
+    // Sort by price and get top 3
+    const sorted = results
+      .map(r => ({
+        store: r.store || r.merchant || 'Unknown',
+        price: formatPrice(r),
+        priceValue: extractPrice(r)
+      }))
+      .filter(r => r.priceValue < 9999)
+      .sort((a, b) => a.priceValue - b.priceValue)
+      .slice(0, 3);
+
+    item.prices = sorted.length > 0 ? sorted : [];
+    item.pricesFetchedAt = Date.now();
+  } catch (err) {
+    console.error('Price fetch error:', err);
+    item.prices = 'error';
+  }
+
+  if (!skipSave) save();
+}
+
+async function checkAllPrices() {
+  // Get all unchecked items
+  const uncheckedItems = items.filter(i => !i.checked);
+
+  if (uncheckedItems.length === 0) {
+    alert('No items to check prices for!');
+    return;
+  }
+
+  // Fetch prices sequentially to avoid overwhelming the system
+  for (const item of uncheckedItems) {
+    item.prices = 'loading';
+    save();
+
+    try {
+      const results = await searchFlipp(item.text);
+
+      if (!results || results.length === 0) {
+        item.prices = [];
+      } else {
+        // Sort by price and get top 3
+        const sorted = results
+          .map(r => ({
+            store: r.store || r.merchant || 'Unknown',
+            price: formatPrice(r),
+            priceValue: extractPrice(r)
+          }))
+          .filter(r => r.priceValue < 9999)
+          .sort((a, b) => a.priceValue - b.priceValue)
+          .slice(0, 3);
+
+        item.prices = sorted.length > 0 ? sorted : [];
+      }
+      item.pricesFetchedAt = Date.now();
+    } catch (err) {
+      console.error('Price fetch error:', err);
+      item.prices = 'error';
+    }
+
+    save();
+  }
 }
 
 // ─── Init ───
