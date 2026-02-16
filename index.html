@@ -497,9 +497,6 @@ function render() {
     list.innerHTML = [...unchecked, ...checked].map(item => {
       const sourceLabels = { typed: '&#9998; Typed', voice: '&#x1F3A4; Voice', photo: '&#x1F4F7; Photo &#8594; AI' };
       return `<div class="item-card ${item.checked ? 'checked' : ''}" data-id="${item.id}">
-        <div class="item-checkbox" onclick="toggleItem('${item.id}')">
-          <span class="item-checkbox-mark">&#x2713;</span>
-        </div>
         <div class="item-content">
           ${item.imageData ? `<img class="item-image" src="${item.imageData}" alt="photo">` : ''}
           <div class="item-text">${escapeHtml(item.text)}</div>
