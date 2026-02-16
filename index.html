@@ -182,8 +182,19 @@ body {
   border: 1px solid #ddd;
   outline: none;
   min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  -webkit-user-select: text;
+  user-select: text;
 }
-.text-input:focus { border-color: #075E54; }
+.text-input:focus { border-color: #075E54; outline: none; }
+.text-input:empty::before {
+  content: attr(data-placeholder);
+  color: #999;
+  pointer-events: none;
+}
+.text-input br { display: none; }
+.text-input * { display: inline; }
 
 .input-btn {
   width: 42px; height: 42px; border-radius: 50%;
@@ -280,7 +291,7 @@ body {
 
 <!-- Input bar -->
 <div class="input-bar">
-  <input type="text" class="text-input" id="textInput" placeholder="Type an item..." autocomplete="off">
+  <div class="text-input" id="textInput" contenteditable="true" role="textbox" data-placeholder="Type an item..."></div>
   <button class="input-btn" id="micBtn" title="Voice input">
     <svg width="20" height="20" viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
   </button>
@@ -415,9 +426,13 @@ function clearDone() {
 
 // ─── Text Input ───
 document.getElementById('textInput').addEventListener('keydown', (e) => {
-  if (e.key === 'Enter' && e.target.value.trim()) {
-    addItem(e.target.value, 'typed');
-    e.target.value = '';
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    const text = e.target.textContent.trim();
+    if (text) {
+      addItem(text, 'typed');
+      e.target.textContent = '';
+    }
   }
 });
 
