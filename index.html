@@ -550,9 +550,12 @@ async function startRecording() {
         const base64 = await blobToBase64(blob);
         const text = await callGemini(
           [{ inline_data: { mime_type: 'audio/webm', data: base64 } }],
-          'Listen to this audio recording. The person is saying what they need to buy. Transcribe what they said into a concise shopping list item name. Return ONLY the item name, nothing else. No quotes, no punctuation unless needed.'
+          'Listen to this audio recording. The person is listing items they need to buy. Extract each individual item and return them as a comma-separated list. For example: "banana, buns, apple". Return ONLY the item names separated by commas, nothing else. No quotes, no numbering, no extra punctuation.'
         );
-        if (text) addItem(text, 'voice');
+        if (text) {
+          const itemNames = text.split(',').map(s => s.trim()).filter(Boolean);
+          itemNames.reverse().forEach(name => addItem(name, 'voice'));
+        }
       } catch (err) {
         alert('Voice error: ' + err.message);
       }
