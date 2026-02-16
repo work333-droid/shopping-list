@@ -524,12 +524,16 @@ async function callGemini(parts, prompt) {
 // ─── Voice Input ───
 const micBtn = document.getElementById('micBtn');
 
-micBtn.addEventListener('mousedown', startRecording);
-micBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startRecording(); });
-micBtn.addEventListener('mouseup', stopRecording);
-micBtn.addEventListener('mouseleave', stopRecording);
-micBtn.addEventListener('touchend', (e) => { e.preventDefault(); stopRecording(); });
-micBtn.addEventListener('touchcancel', stopRecording);
+micBtn.addEventListener('click', toggleRecording);
+micBtn.addEventListener('touchend', (e) => { e.preventDefault(); toggleRecording(); });
+
+function toggleRecording() {
+  if (isRecording) {
+    stopRecording();
+  } else {
+    startRecording();
+  }
+}
 
 async function startRecording() {
   if (!requireApiKey()) return;
@@ -567,7 +571,7 @@ async function startRecording() {
       }
       hideProcessing();
     };
-    mediaRecorder.start();
+    mediaRecorder.start(500);
     isRecording = true;
     micBtn.classList.add('recording');
   } catch (err) {
