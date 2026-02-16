@@ -431,6 +431,7 @@ const STORE_COLORS = {
   'no frills': '#ffd700',
   'metro': '#003da5',
   'food basics': '#e85d00',
+  't&t': '#ff0000',
 };
 
 const STORE_INITIALS = {
@@ -439,6 +440,7 @@ const STORE_INITIALS = {
   'no frills': 'NF',
   'metro': 'M',
   'food basics': 'FB',
+  't&t': 'T&T',
 };
 
 const CORS_PROXIES = [
@@ -455,6 +457,7 @@ function normalizeStore(name) {
   if (lower.includes('no frills') || lower.includes('nofrills') || lower.includes('no-frills')) return 'no frills';
   if (lower.includes('food basics') || lower.includes('foodbasics') || lower.includes('food-basics')) return 'food basics';
   if (lower.includes('metro')) return 'metro';
+  if (lower.includes('t&t') || lower.includes('t and t')) return 't&t';
   return lower;
 }
 
@@ -837,30 +840,34 @@ function renderPriceSection(item) {
 // Price database - common grocery items with realistic Canadian prices
 const PRICE_DATABASE = {
   'milk': [
-    { store: 'Walmart Canada', price: 5.47, brand: '4L 2%' },
     { store: 'No Frills', price: 4.99, brand: '4L 2%' },
     { store: 'Food Basics', price: 5.29, brand: '4L 2%' },
+    { store: 'Walmart Canada', price: 5.47, brand: '4L 2%' },
     { store: 'Loblaws', price: 5.99, brand: '4L 2%' },
-    { store: 'Metro', price: 6.49, brand: '4L 2%' }
+    { store: 'Metro', price: 6.49, brand: '4L 2%' },
+    { store: 'T&T', price: 5.79, brand: '4L 2%' }
   ],
   'bread': [
     { store: 'No Frills', price: 1.99, brand: 'White loaf' },
     { store: 'Food Basics', price: 2.29, brand: 'White loaf' },
     { store: 'Walmart Canada', price: 2.47, brand: 'White loaf' },
     { store: 'Loblaws', price: 2.99, brand: 'White loaf' },
-    { store: 'Metro', price: 3.29, brand: 'White loaf' }
+    { store: 'Metro', price: 3.29, brand: 'White loaf' },
+    { store: 'T&T', price: 2.79, brand: 'White loaf' }
   ],
   'eggs': [
     { store: 'Food Basics', price: 3.49, brand: '12 large' },
     { store: 'No Frills', price: 3.79, brand: '12 large' },
     { store: 'Walmart Canada', price: 3.97, brand: '12 large' },
     { store: 'Loblaws', price: 4.49, brand: '12 large' },
+    { store: 'T&T', price: 4.29, brand: '12 large' },
     { store: 'Metro', price: 4.99, brand: '12 large' }
   ],
   'chicken breast': [
     { store: 'No Frills', price: 9.99, brand: 'per lb' },
     { store: 'Food Basics', price: 10.49, brand: 'per lb' },
     { store: 'Walmart Canada', price: 11.97, brand: 'per lb' },
+    { store: 'T&T', price: 11.49, brand: 'per lb' },
     { store: 'Metro', price: 12.99, brand: 'per lb' },
     { store: 'Loblaws', price: 13.49, brand: 'per lb' }
   ],
@@ -869,17 +876,20 @@ const PRICE_DATABASE = {
     { store: 'Food Basics', price: 0.77, brand: 'per lb' },
     { store: 'Walmart Canada', price: 0.79, brand: 'per lb' },
     { store: 'Loblaws', price: 0.89, brand: 'per lb' },
+    { store: 'T&T', price: 0.89, brand: 'per lb' },
     { store: 'Metro', price: 0.99, brand: 'per lb' }
   ],
   'apple': [
     { store: 'Food Basics', price: 1.49, brand: 'per lb' },
     { store: 'No Frills', price: 1.69, brand: 'per lb' },
     { store: 'Walmart Canada', price: 1.97, brand: 'per lb' },
+    { store: 'T&T', price: 1.99, brand: 'per lb' },
     { store: 'Loblaws', price: 2.29, brand: 'per lb' },
     { store: 'Metro', price: 2.49, brand: 'per lb' }
   ],
   'rice': [
     { store: 'No Frills', price: 12.99, brand: '10kg bag' },
+    { store: 'T&T', price: 13.29, brand: '10kg bag' },
     { store: 'Food Basics', price: 13.49, brand: '10kg bag' },
     { store: 'Walmart Canada', price: 14.97, brand: '10kg bag' },
     { store: 'Loblaws', price: 16.99, brand: '10kg bag' },
@@ -889,6 +899,7 @@ const PRICE_DATABASE = {
     { store: 'No Frills', price: 0.99, brand: '900g' },
     { store: 'Food Basics', price: 1.29, brand: '900g' },
     { store: 'Walmart Canada', price: 1.47, brand: '900g' },
+    { store: 'T&T', price: 1.79, brand: '900g' },
     { store: 'Loblaws', price: 1.99, brand: '900g' },
     { store: 'Metro', price: 2.29, brand: '900g' }
   ],
@@ -896,6 +907,7 @@ const PRICE_DATABASE = {
     { store: 'Food Basics', price: 5.49, brand: '400g block' },
     { store: 'No Frills', price: 5.99, brand: '400g block' },
     { store: 'Walmart Canada', price: 6.47, brand: '400g block' },
+    { store: 'T&T', price: 6.99, brand: '400g block' },
     { store: 'Loblaws', price: 7.49, brand: '400g block' },
     { store: 'Metro', price: 7.99, brand: '400g block' }
   ],
@@ -904,6 +916,7 @@ const PRICE_DATABASE = {
     { store: 'Food Basics', price: 5.29, brand: '454g' },
     { store: 'Walmart Canada', price: 5.47, brand: '454g' },
     { store: 'Loblaws', price: 5.99, brand: '454g' },
+    { store: 'T&T', price: 6.19, brand: '454g' },
     { store: 'Metro', price: 6.49, brand: '454g' }
   ]
 };
