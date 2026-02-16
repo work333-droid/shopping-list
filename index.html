@@ -675,6 +675,8 @@ async function startRecording() {
     mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) audioChunks.push(e.data); };
     mediaRecorder.onstop = async () => {
       stream.getTracks().forEach(t => t.stop());
+
+      // Only process if we have audio and recording lasted more than 300ms
       if (audioChunks.length === 0) return;
 
       showProcessing('Transcribing voice...');
@@ -721,7 +723,8 @@ Now transcribe what you hear:`
       }
       hideProcessing();
     };
-    mediaRecorder.start(500);
+
+    mediaRecorder.start();
     isRecording = true;
     micBtn.classList.add('recording');
   } catch (err) {
@@ -731,9 +734,14 @@ Now transcribe what you hear:`
 
 function stopRecording() {
   if (!isRecording || !mediaRecorder) return;
+
+  // Stop recording immediately
   isRecording = false;
   micBtn.classList.remove('recording');
-  mediaRecorder.stop();
+
+  if (mediaRecorder.state === 'recording') {
+    mediaRecorder.stop();
+  }
 }
 
 // ─── Camera Input ───
