@@ -19,27 +19,70 @@ body {
   height: 100vh;
   height: 100dvh;
 }
+
+/* Header */
 .header {
   background: #075E54;
   color: white;
-  padding: 12px 16px 14px;
+  padding: 0;
+  flex-shrink: 0;
+  padding-top: env(safe-area-inset-top);
+  z-index: 10;
+}
+.header-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  flex-shrink: 0;
-  padding-top: max(12px, env(safe-area-inset-top));
-  z-index: 10;
+  padding: 8px 12px 0;
 }
-.header-left { display: flex; align-items: center; gap: 10px; }
-.header-icon { font-size: 22px; }
-.header-title { font-size: 18px; font-weight: 600; }
-.header-count { font-size: 11px; opacity: 0.75; }
-.header-actions { display: flex; gap: 12px; align-items: center; }
+.header-tabs {
+  display: flex;
+  gap: 0;
+}
+.header-tab {
+  padding: 8px 14px 10px;
+  border-radius: 10px 10px 0 0;
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: white;
+  opacity: 0.55;
+  transition: all 0.2s;
+  text-align: left;
+}
+.header-tab.active {
+  background: rgba(255,255,255,0.15);
+  opacity: 1;
+}
+.header-tab:active { opacity: 1; }
+.header-tab-name {
+  font-size: 15px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.header-tab-icon { font-size: 16px; }
+.header-tab-count { font-size: 10px; opacity: 0.7; margin-top: 1px; }
+.header-actions { display: flex; gap: 10px; align-items: center; padding-bottom: 6px; }
 .header-btn {
-  background: none; border: none; color: white; font-size: 14px;
+  background: none; border: none; color: white; font-size: 13px;
   cursor: pointer; opacity: 0.85; padding: 4px 8px; border-radius: 6px;
 }
 .header-btn:active { opacity: 1; background: rgba(255,255,255,0.15); }
+.header-bar {
+  height: 3px;
+  background: rgba(255,255,255,0.2);
+}
+.header-bar-fill {
+  height: 3px;
+  background: white;
+  width: 50%;
+  border-radius: 2px;
+  transition: transform 0.25s ease;
+}
+
+/* Items list */
 .items-container {
   flex: 1;
   overflow-y: auto;
@@ -49,6 +92,8 @@ body {
   gap: 6px;
   -webkit-overflow-scrolling: touch;
 }
+
+/* Empty state */
 .empty-state {
   flex: 1;
   display: flex;
@@ -61,6 +106,8 @@ body {
 }
 .empty-state-icon { font-size: 48px; opacity: 0.5; }
 .empty-state-text { font-size: 15px; text-align: center; }
+
+/* Item card */
 .item-card {
   display: flex;
   align-items: flex-start;
@@ -76,6 +123,7 @@ body {
   to { opacity: 1; transform: translateY(0); }
 }
 .item-card.checked { opacity: 0.45; }
+
 .item-checkbox {
   width: 22px; height: 22px; border-radius: 50%;
   border: 2px solid #075E54; flex-shrink: 0;
@@ -83,17 +131,27 @@ body {
   justify-content: center; margin-top: 1px;
   transition: all 0.15s;
 }
-.item-card.checked .item-checkbox { background: #075E54; }
+.item-card.checked .item-checkbox {
+  background: #075E54;
+}
 .item-checkbox-mark { color: white; font-size: 13px; display: none; }
 .item-card.checked .item-checkbox-mark { display: block; }
+
 .item-content { flex: 1; min-width: 0; }
 .item-image {
   width: 100%; max-height: 140px; border-radius: 8px;
   object-fit: cover; margin-bottom: 6px; display: block;
 }
-.item-text { font-size: 15px; color: #1a1a1a; word-wrap: break-word; }
-.item-card.checked .item-text { text-decoration: line-through; color: #999; }
-.item-source { font-size: 10px; color: #aaa; margin-top: 3px; }
+.item-text {
+  font-size: 15px; color: #1a1a1a; word-wrap: break-word;
+}
+.item-card.checked .item-text {
+  text-decoration: line-through; color: #999;
+}
+.item-source {
+  font-size: 10px; color: #aaa; margin-top: 3px;
+}
+
 .item-delete {
   color: #ff4444; font-size: 20px; cursor: pointer;
   padding: 2px 4px; font-weight: bold; line-height: 1;
@@ -103,6 +161,8 @@ body {
 .item-delete:active { background: #fff0f0; }
 .item-card:has(.item-image) .item-checkbox,
 .item-card:has(.item-image) .item-delete { margin-top: 24px; }
+
+/* Input bar */
 .input-bar {
   padding: 8px 10px;
   padding-bottom: max(8px, env(safe-area-inset-bottom));
@@ -114,11 +174,17 @@ body {
   z-index: 10;
 }
 .text-input {
-  flex: 1; background: white; border-radius: 24px;
-  padding: 10px 16px; font-size: 15px;
-  border: 1px solid #ddd; outline: none; min-width: 0;
+  flex: 1;
+  background: white;
+  border-radius: 24px;
+  padding: 10px 16px;
+  font-size: 16px;
+  border: 1px solid #ddd;
+  outline: none;
+  min-width: 0;
 }
 .text-input:focus { border-color: #075E54; }
+
 .input-btn {
   width: 42px; height: 42px; border-radius: 50%;
   background: #075E54; display: flex;
@@ -133,6 +199,8 @@ body {
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.1); }
 }
+
+/* Settings modal */
 .modal-overlay {
   position: fixed; inset: 0; background: rgba(0,0,0,0.5);
   display: flex; align-items: center; justify-content: center;
@@ -147,7 +215,8 @@ body {
 .modal p { font-size: 13px; color: #666; margin-bottom: 16px; line-height: 1.5; }
 .modal input[type="text"] {
   width: 100%; padding: 12px 14px; border: 2px solid #ddd;
-  border-radius: 10px; font-size: 14px; outline: none; margin-bottom: 16px;
+  border-radius: 10px; font-size: 16px; outline: none;
+  margin-bottom: 16px;
 }
 .modal input[type="text"]:focus { border-color: #075E54; }
 .modal-buttons { display: flex; gap: 10px; justify-content: flex-end; }
@@ -160,6 +229,8 @@ body {
 .modal-btn.secondary { background: #eee; color: #333; }
 .modal-btn.secondary:active { background: #ddd; }
 .modal a { color: #075E54; }
+
+/* Loading indicator */
 .loading-dot {
   display: inline-block; width: 8px; height: 8px;
   border-radius: 50%; background: #075E54; margin: 0 2px;
@@ -176,24 +247,38 @@ body {
   background: white; border-radius: 10px; padding: 14px;
   box-shadow: 0 1px 2px rgba(0,0,0,0.06); color: #666; font-size: 14px;
 }
+
+/* Camera input hidden */
 #cameraInput { display: none; }
 </style>
 </head>
 <body>
+
+<!-- Header -->
 <div class="header">
-  <div class="header-left">
-    <span class="header-icon">&#x1F6D2;</span>
-    <div>
-      <div class="header-title">Shopping List</div>
-      <div class="header-count" id="itemCount">0 items</div>
+  <div class="header-top">
+    <div class="header-tabs">
+      <button class="header-tab active" id="tabShopping" onclick="switchFolder('shopping')">
+        <div class="header-tab-name"><span class="header-tab-icon">&#x1F6D2;</span> Shopping List</div>
+        <div class="header-tab-count" id="countShopping">0 items</div>
+      </button>
+      <button class="header-tab" id="tabHome" onclick="switchFolder('home')">
+        <div class="header-tab-name"><span class="header-tab-icon">&#x1F3E0;</span> Home</div>
+        <div class="header-tab-count" id="countHome">0 items</div>
+      </button>
+    </div>
+    <div class="header-actions">
+      <button class="header-btn" onclick="clearDone()" title="Clear completed">&#x1F5D1; Clear done</button>
+      <button class="header-btn" onclick="showSettings()" title="Settings">&#x2699;</button>
     </div>
   </div>
-  <div class="header-actions">
-    <button class="header-btn" onclick="clearDone()" title="Clear completed">&#x1F5D1; Clear done</button>
-    <button class="header-btn" onclick="showSettings()" title="Settings">&#x2699;</button>
-  </div>
+  <div class="header-bar"><div class="header-bar-fill" id="tabBar"></div></div>
 </div>
+
+<!-- Items -->
 <div class="items-container" id="itemsList"></div>
+
+<!-- Input bar -->
 <div class="input-bar">
   <input type="text" class="text-input" id="textInput" placeholder="Type an item..." autocomplete="off">
   <button class="input-btn" id="micBtn" title="Voice input">
@@ -204,6 +289,8 @@ body {
   </button>
   <input type="file" id="cameraInput" accept="image/*" capture="environment">
 </div>
+
+<!-- API Key Modal -->
 <div class="modal-overlay hidden" id="settingsModal">
   <div class="modal">
     <h2>Gemini API Key</h2>
@@ -216,18 +303,55 @@ body {
     </div>
   </div>
 </div>
+
 <script>
-let items = JSON.parse(localStorage.getItem('shoppingItems') || '[]');
+// ─── Folder State ───
+const folders = {
+  shopping: { key: 'shoppingItems', icon: '&#x1F6D2;', emptyIcon: '&#x1F6D2;', emptyText: 'Your shopping list is empty.<br>Type, speak, or snap a photo to add items.' },
+  home: { key: 'homeItems', icon: '&#x1F3E0;', emptyIcon: '&#x1F3E0;', emptyText: 'Your home list is empty.<br>Type, speak, or snap a photo to add items.' }
+};
+let activeFolder = localStorage.getItem('activeFolder') || 'shopping';
+let items = JSON.parse(localStorage.getItem(folders[activeFolder].key) || '[]');
 let apiKey = localStorage.getItem('geminiApiKey') || '';
 let mediaRecorder = null;
 let audioChunks = [];
 let isRecording = false;
+
+// ─── Folder Switching ───
+function switchFolder(folder) {
+  // Save current items
+  localStorage.setItem(folders[activeFolder].key, JSON.stringify(items));
+  // Switch
+  activeFolder = folder;
+  localStorage.setItem('activeFolder', folder);
+  items = JSON.parse(localStorage.getItem(folders[folder].key) || '[]');
+  // Update tabs
+  document.getElementById('tabShopping').classList.toggle('active', folder === 'shopping');
+  document.getElementById('tabHome').classList.toggle('active', folder === 'home');
+  // Slide tab bar indicator
+  document.getElementById('tabBar').style.transform = folder === 'home' ? 'translateX(100%)' : 'translateX(0)';
+  render();
+  updateAllCounts();
+}
+
+function updateAllCounts() {
+  const shoppingItems = activeFolder === 'shopping' ? items : JSON.parse(localStorage.getItem('shoppingItems') || '[]');
+  const homeItems = activeFolder === 'home' ? items : JSON.parse(localStorage.getItem('homeItems') || '[]');
+  const sc = shoppingItems.filter(i => !i.checked).length;
+  const hc = homeItems.filter(i => !i.checked).length;
+  document.getElementById('countShopping').textContent = sc === 0 && shoppingItems.length > 0 ? 'All done!' : `${sc} item${sc !== 1 ? 's' : ''}`;
+  document.getElementById('countHome').textContent = hc === 0 && homeItems.length > 0 ? 'All done!' : `${hc} item${hc !== 1 ? 's' : ''}`;
+}
+
+// ─── Render ───
 function render() {
   const list = document.getElementById('itemsList');
   const unchecked = items.filter(i => !i.checked);
   const checked = items.filter(i => i.checked);
+  const f = folders[activeFolder];
+
   if (items.length === 0) {
-    list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">&#x1F6D2;</div><div class="empty-state-text">Your list is empty.<br>Type, speak, or snap a photo to add items.</div></div>';
+    list.innerHTML = `<div class="empty-state"><div class="empty-state-icon">${f.emptyIcon}</div><div class="empty-state-text">${f.emptyText}</div></div>`;
   } else {
     list.innerHTML = [...unchecked, ...checked].map(item => {
       const sourceLabels = { typed: '&#9998; Typed', voice: '&#x1F3A4; Voice', photo: '&#x1F4F7; Photo &#8594; AI' };
@@ -244,20 +368,22 @@ function render() {
       </div>`;
     }).join('');
   }
-  const remaining = unchecked.length;
-  document.getElementById('itemCount').textContent =
-    remaining === 0 && checked.length > 0 ? 'All done!' :
-    `${remaining} item${remaining !== 1 ? 's' : ''}`;
+
+  updateAllCounts();
 }
+
 function escapeHtml(text) {
   const d = document.createElement('div');
   d.textContent = text;
   return d.innerHTML;
 }
+
 function save() {
-  localStorage.setItem('shoppingItems', JSON.stringify(items));
+  localStorage.setItem(folders[activeFolder].key, JSON.stringify(items));
   render();
 }
+
+// ─── Item Actions ───
 function addItem(text, source, imageData) {
   if (!text || !text.trim()) return;
   items.unshift({
@@ -271,24 +397,31 @@ function addItem(text, source, imageData) {
   save();
   document.getElementById('itemsList').scrollTop = 0;
 }
+
 function deleteItem(id) {
   items = items.filter(i => i.id !== id);
   save();
 }
+
 function toggleItem(id) {
   const item = items.find(i => i.id === id);
   if (item) { item.checked = !item.checked; save(); }
 }
+
 function clearDone() {
   items = items.filter(i => !i.checked);
   save();
 }
+
+// ─── Text Input ───
 document.getElementById('textInput').addEventListener('keydown', (e) => {
   if (e.key === 'Enter' && e.target.value.trim()) {
     addItem(e.target.value, 'typed');
     e.target.value = '';
   }
 });
+
+// ─── Settings ───
 function showSettings() {
   document.getElementById('apiKeyInput').value = apiKey;
   document.getElementById('settingsModal').classList.remove('hidden');
@@ -301,10 +434,16 @@ function saveApiKey() {
   localStorage.setItem('geminiApiKey', apiKey);
   closeSettings();
 }
+
 function requireApiKey() {
-  if (!apiKey) { showSettings(); return false; }
+  if (!apiKey) {
+    showSettings();
+    return false;
+  }
   return true;
 }
+
+// ─── Processing indicator ───
 function showProcessing(message) {
   const list = document.getElementById('itemsList');
   const el = document.createElement('div');
@@ -318,9 +457,13 @@ function hideProcessing() {
   const el = document.getElementById('processingCard');
   if (el) el.remove();
 }
+
+// ─── Gemini API ───
 async function callGemini(parts, prompt) {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${apiKey}`;
-  const body = { contents: [{ parts: [{ text: prompt }, ...parts] }] };
+  const body = {
+    contents: [{ parts: [{ text: prompt }, ...parts] }]
+  };
   const res = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -333,16 +476,21 @@ async function callGemini(parts, prompt) {
   const data = await res.json();
   return data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
 }
+
+// ─── Voice Input ───
 const micBtn = document.getElementById('micBtn');
+
 micBtn.addEventListener('mousedown', startRecording);
 micBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startRecording(); });
 micBtn.addEventListener('mouseup', stopRecording);
 micBtn.addEventListener('mouseleave', stopRecording);
 micBtn.addEventListener('touchend', (e) => { e.preventDefault(); stopRecording(); });
 micBtn.addEventListener('touchcancel', stopRecording);
+
 async function startRecording() {
   if (!requireApiKey()) return;
   if (isRecording) return;
+
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     audioChunks = [];
@@ -351,6 +499,7 @@ async function startRecording() {
     mediaRecorder.onstop = async () => {
       stream.getTracks().forEach(t => t.stop());
       if (audioChunks.length === 0) return;
+
       showProcessing('Transcribing voice...');
       try {
         const blob = new Blob(audioChunks, { type: 'audio/webm' });
@@ -360,24 +509,32 @@ async function startRecording() {
           'Listen to this audio recording. The person is saying what they need to buy. Transcribe what they said into a concise shopping list item name. Return ONLY the item name, nothing else. No quotes, no punctuation unless needed.'
         );
         if (text) addItem(text, 'voice');
-      } catch (err) { alert('Voice error: ' + err.message); }
+      } catch (err) {
+        alert('Voice error: ' + err.message);
+      }
       hideProcessing();
     };
     mediaRecorder.start();
     isRecording = true;
     micBtn.classList.add('recording');
-  } catch (err) { alert('Microphone access denied. Please allow microphone access in your browser settings.'); }
+  } catch (err) {
+    alert('Microphone access denied. Please allow microphone access in your browser settings.');
+  }
 }
+
 function stopRecording() {
   if (!isRecording || !mediaRecorder) return;
   isRecording = false;
   micBtn.classList.remove('recording');
   mediaRecorder.stop();
 }
+
+// ─── Camera Input ───
 document.getElementById('cameraInput').addEventListener('change', async (e) => {
   const file = e.target.files?.[0];
   if (!file) return;
   if (!requireApiKey()) { e.target.value = ''; return; }
+
   showProcessing('Identifying item...');
   try {
     const imageData = await resizeImage(file, 800);
@@ -387,10 +544,14 @@ document.getElementById('cameraInput').addEventListener('change', async (e) => {
       'What grocery or shopping item is shown in this image? Return ONLY a short, concise shopping list item name (1-5 words). No quotes, no explanation.'
     );
     if (text) addItem(text, 'photo', imageData);
-  } catch (err) { alert('Camera error: ' + err.message); }
+  } catch (err) {
+    alert('Camera error: ' + err.message);
+  }
   hideProcessing();
   e.target.value = '';
 });
+
+// ─── Helpers ───
 function blobToBase64(blob) {
   return new Promise((resolve) => {
     const reader = new FileReader();
@@ -398,6 +559,7 @@ function blobToBase64(blob) {
     reader.readAsDataURL(blob);
   });
 }
+
 function resizeImage(file, maxSize) {
   return new Promise((resolve) => {
     const img = new Image();
@@ -410,15 +572,21 @@ function resizeImage(file, maxSize) {
         if (w > h) { h = Math.round(h * maxSize / w); w = maxSize; }
         else { w = Math.round(w * maxSize / h); h = maxSize; }
       }
-      canvas.width = w; canvas.height = h;
+      canvas.width = w;
+      canvas.height = h;
       canvas.getContext('2d').drawImage(img, 0, 0, w, h);
       resolve(canvas.toDataURL('image/jpeg', 0.8));
     };
     img.src = url;
   });
 }
-render();
-if (!apiKey) { setTimeout(showSettings, 500); }
+
+// ─── Init ───
+switchFolder(activeFolder);
+
+if (!apiKey) {
+  setTimeout(showSettings, 500);
+}
 </script>
 </body>
 </html>
