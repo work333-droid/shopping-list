@@ -654,16 +654,15 @@ async function callGemini(parts, prompt) {
 // ─── Voice Input ───
 const micBtn = document.getElementById('micBtn');
 
-micBtn.addEventListener('click', toggleRecording);
-micBtn.addEventListener('touchend', (e) => { e.preventDefault(); toggleRecording(); });
+// Hold to record functionality
+micBtn.addEventListener('mousedown', startRecording);
+micBtn.addEventListener('mouseup', stopRecording);
+micBtn.addEventListener('mouseleave', () => { if (isRecording) stopRecording(); });
 
-function toggleRecording() {
-  if (isRecording) {
-    stopRecording();
-  } else {
-    startRecording();
-  }
-}
+// Touch events for mobile
+micBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startRecording(); });
+micBtn.addEventListener('touchend', (e) => { e.preventDefault(); stopRecording(); });
+micBtn.addEventListener('touchcancel', () => { if (isRecording) stopRecording(); });
 
 async function startRecording() {
   if (!requireApiKey()) return;
